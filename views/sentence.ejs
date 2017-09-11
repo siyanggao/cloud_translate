@@ -3,25 +3,37 @@
 <el-row>
 <el-col :span="4"><div class="grid-content bg-purple"><%- include left %></div></el-col>
 <el-col :span="20">
-<el-button @click="dialogFormVisible = true">add</el-button>
+<el-button @click="addFormVisible = true" style="margin:5px">add</el-button>
 <el-table :data="tableData" border style="width: 100%">
-	<el-table-column prop="id" label="id" width="180"></el-table-column>
-	<el-table-column prop="e_content" label="e_content" width="180"></el-table-column>
-	<el-table-column prop="c_content" label="c_content" width="180"></el-table-column>
-	<el-table-column prop="image_path" label="image" width="180"></el-table-column>
-	<el-table-column prop="gmt_create" label="gmt_create" width="180"></el-table-column>
-	<el-table-column prop="gmt_modified" label="gmt_modified" width="180"></el-table-column>
-	<el-table-column label="operate">
+	<el-table-column prop="id" label="id" width="60"></el-table-column>
+	<el-table-column prop="e_content" label="e_content" width="220"></el-table-column>
+	<el-table-column prop="c_content" label="c_content" width="220"></el-table-column>
+	<el-table-column prop="image_path" label="image" width="180">
+		<template scope="scope"><img v-bind:src="scope.row.image_path" style="width:150px;height:80px"/></template>
+	</el-table-column>
+	<el-table-column prop="publish_date" label="publish_date" width="120"></el-table-column>
+	<el-table-column prop="gmt_create" label="gmt_create" width="120"></el-table-column>
+	<el-table-column prop="gmt_modified" label="gmt_modified" width="120"></el-table-column>
+	<el-table-column label="operate" width="150">
       <template scope="scope">
-        <el-button @click="handleClick((scope.$index, scope.row))"  size="small">edit</el-button>
-        <el-button @click="handleDelete((scope.$index, scope.row))" size="small" type="danger">delete</el-button>
+        <el-button @click="handleEdit(scope.$index, scope.row)"  size="small">edit</el-button>
+        <el-button @click="handleDelete(scope.$index, scope.row)" size="small" type="danger">delete</el-button>
       </template>
     </el-table-column>
 </el-table>
+<el-pagination style="float:right"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="page.currentPage"
+      :page-sizes="[10, 15, 50, 100]"
+      :page-size="page.pageSize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="page.totalSize">
+    </el-pagination>
 </el-col>
 </el-row>
 
-<el-dialog title="add" :visible.sync="dialogFormVisible">
+<el-dialog title="add" :visible.sync="addFormVisible">
   <el-form :model="form">
     <el-form-item label="e_content" :label-width="formLabelWidth">
       <el-input v-model="form.e_content" auto-complete="off"></el-input>
@@ -29,9 +41,15 @@
     <el-form-item label="c_content" :label-width="formLabelWidth">
       <el-input v-model="form.c_content" auto-complete="off"></el-input>
     </el-form-item>
+    <el-form-item label="publish_date" :label-width="formLabelWidth">
+	    <el-col :span="11">
+	      <el-date-picker type="date" placeholder="choice date" v-model="form.publish_date" style="width: 100%;"></el-date-picker>
+	    </el-col>
+	</el-form-item>
     <el-form-item >
     	<el-upload
 		  action="/upload"
+		  :data={type:'sentence'}
 		  list-type="picture-card"
 		  :multiple=false
 		  :on-success="handleUploadSuccess">
@@ -43,55 +61,174 @@
     </el-form-item>
   </el-form>
   <div slot="footer" class="dialog-footer">
-    <el-button @click="dialogFormVisible = false">取 消</el-button>
-    <el-button type="primary" @click="handleAdd">确 定</el-button>
+    <el-button @click="addFormVisible = false">取 消</el-button>
+    <el-button type="primary" @click="add">确 定</el-button>
+  </div>
+</el-dialog>
+
+<el-dialog title="edit" :visible.sync="editFormVisible">
+  <el-form :model="editForm">
+    <el-form-item label="e_content" :label-width="formLabelWidth">
+      <el-input v-model="editForm.e_content" auto-complete="off"></el-input>
+    </el-form-item>
+    <el-form-item label="c_content" :label-width="formLabelWidth">
+      <el-input v-model="editForm.c_content" auto-complete="off"></el-input>
+    </el-form-item>
+    <el-form-item label="publish_date" :label-width="formLabelWidth">
+	    <el-col :span="11">
+	      <el-date-picker type="date" placeholder="choice date" v-model="editForm.publish_date" style="width: 100%;"></el-date-picker>
+	    </el-col>
+	</el-form-item>
+    <el-form-item >
+    	<el-upload
+		  action="/upload"
+		  :data={type:'sentence'}
+		  list-type="picture-card"
+		  :multiple=false
+		  :file-list="fileList"
+		  :on-success="handleUploadSuccess">
+		  <i class="el-icon-plus"></i>
+		</el-upload>
+		<el-dialog v-model="dialogVisible" size="tiny">
+		  <img width="100%" :src="dialogImageUrl" alt="">
+		</el-dialog>
+    </el-form-item>
+  </el-form>
+  <div slot="footer" class="dialog-footer">
+    <el-button @click="editFormVisible = false">取 消</el-button>
+    <el-button type="primary" @click="edit">确 定</el-button>
   </div>
 </el-dialog>
 
 
 </div>
 <script type="text/javascript">
+const Foo = { template: '<div>foo</div>' }
+const routes = [
+  { path: '/foo', component: Foo },
+  { path: '/bar'}
+];
+const router = new VueRouter({
+  routes 
+});
 	var app = new Vue({
 	  el: '#app',
 	  data: {
 	    message: 'Hello Vue!',
 	    tableData:<%- tableData%>,
-	    dialogFormVisible: false,
+	    addFormVisible: false,
+	    editFormVisible: false,
 	    form: {
           e_content: '',
           c_content: '',
-          date1: '',
-          date2: '',
-          delivery: false,
-          type: [],
-          resource: '',
-          desc: ''
+          upload_url:'',
+          publish_date:''
+        },
+        editForm: {
+          id:0,
+          e_content: '',
+          c_content: '',
+          upload_url:'',
+          publish_date:''
         },
         formLabelWidth: '120px',
-        dialogImageUrl: '',
-        dialogVisible: false,
-        image_path: ''
+		dialogImageUrl:false,
+		dialogVisible:false,
+		fileList:[],
+		page:{
+			currentPage:<%=currentPage%>,
+			pageSize:<%=pageSize%>,
+			totalSize:<%=totalSize%>
+		}
 	  },
 	  created:function(){
 
-
 	  },
+	  router ,
 	  methods:{
-	  	handleClick:function(index,row){
-	  	
+	  	handleEdit:function(index,row){
+	  		this.editFormVisible = true;
+	  		this.editForm.id = row.id;
+	  		this.editForm.e_content = row.e_content;
+	  		this.editForm.c_content = row.c_content;
+	  		this.editForm.upload_url = row.image_path;
+	  		console.log(row.publish_date);
+	  		this.editForm.publish_date = row.publish_date;
+	  		this.fileList = [{name:'name',url:row.image_path}];
 	  	},
 	  	handleDelete:function(index,row){
-	  	
+	  		this.$confirm('this operate will delete forever,ready to delete?','confirm',{
+	  			confirmButtonText: 'ok',
+		        cancelButtonText: 'cancel',
+		        type: 'warning'
+	  		}).then(()=>{
+	  			Vue.http.post('delete',{id:row.id}).then(response=>{
+		  			if(response.body==1){
+		  				this.$message({
+				          message: 'delete success',
+				          type: 'success'
+				        });
+				        this.addFormVisible = false;
+		  			}else{
+		  				this.$message.error('delete failure');
+		  			}
+		  		});
+	  		});
+	  		
 	  	},
-	  	handleAdd(){
-
+	  	add(){
+	  		Vue.http.post('add',this.form).then(response=>{
+	  			console.log(response);
+	  			if(response.body==1){
+	  				this.$message({
+			          message: 'add success',
+			          type: 'success'
+			        });
+			        this.addFormVisible = false;
+	  			}else{
+	  				this.$message.error('add failure');
+	  			}
+	  		});
+	  	},
+	  	edit(){
+	  		Vue.http.post('edit',this.editForm).then(response=>{
+	  			console.log(response);
+	  			if(response.body==1){
+	  				this.$message({
+			          message: 'edit success',
+			          type: 'success'
+			        });
+			        this.editFormVisible = false;
+	  			}else{
+	  				this.$message.error('edit failure');
+	  			}
+	  		});
 	  	},
 	  	handleUploadSuccess(res, file){
-	  		this.imageUrl = URL.createObjectURL(file.raw);
-	  		console.log(this.imageUrl);
+	  		if(this.addFormVisible)
+	  			this.form.upload_url = res;
+	  		if(this.editFormVisible)
+	  			this.editForm.upload_url = res;
+	  		console.log(res);
 
-	  	}
-	  }
+	  	},
+  		handleSizeChange(val) {
+  			this.page.pageSize = val;
+  			this.$http.get('/',this.page);
+	      console.log(`每页 ${val} 条`);
+
+	    },
+	    handleCurrentChange(val) {
+	    	this.page.currentPage = val;
+	    	this.$http.get('',this.page);
+	      console.log(`当前页: ${val}`);
+	      this.$router.push({ name: 'user', params: { userId: 123 } }) 
+	      //this.router.push({name: 'user', params: {userId: 1}});
+	    },
+	    refresh(){
+	    	Vue.http.get('',this.page);
+	    }
+      }
 	});
 </script>
 <%- include footer %>
