@@ -32,6 +32,7 @@
     <el-form-item >
     	<el-upload
 		  action="/upload"
+		  data={type:'sentence'}
 		  list-type="picture-card"
 		  :multiple=false
 		  :on-success="handleUploadSuccess">
