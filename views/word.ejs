@@ -6,12 +6,13 @@
 <el-button @click="addFormVisible = true" style="margin:5px" type="primary">add</el-button>
 <el-table :data="tableData" border style="width: 100%">
 	<el-table-column prop="id" label="id" width="60"></el-table-column>
-	<el-table-column prop="e_content" label="e_content" width="220"></el-table-column>
-	<el-table-column prop="c_content" label="c_content" width="220"></el-table-column>
+	<el-table-column prop="word" label="word" width="220"></el-table-column>
 	<el-table-column prop="image_path" label="image" width="180">
 		<template scope="scope"><img v-bind:src="scope.row.image_path" style="width:150px;height:80px"/></template>
 	</el-table-column>
 	<el-table-column prop="publish_date" label="publish_date" width="120"></el-table-column>
+	<el-table-column prop="us_phonemes" label="us_phonemes" width="120"></el-table-column>
+	<el-table-column prop="uk_phonemes" label="uk_phonemes" width="120"></el-table-column>
 	<el-table-column prop="gmt_create" label="gmt_create" width="120"></el-table-column>
 	<el-table-column prop="gmt_modified" label="gmt_modified" width="120"></el-table-column>
 	<el-table-column label="operate" width="150">
@@ -35,21 +36,24 @@
 
 <el-dialog title="add" :visible.sync="addFormVisible">
   <el-form :model="form">
-    <el-form-item label="e_content" :label-width="formLabelWidth">
-      <el-input v-model="form.e_content" auto-complete="off"></el-input>
+    <el-form-item label="word" :label-width="formLabelWidth">
+      <el-input v-model="form.word" auto-complete="off"></el-input>
     </el-form-item>
-    <el-form-item label="c_content" :label-width="formLabelWidth">
-      <el-input v-model="form.c_content" auto-complete="off"></el-input>
+    <el-form-item label="us_phonemes" :label-width="formLabelWidth">
+      <el-input v-model="form.us_phonemes" auto-complete="off"></el-input>
+    </el-form-item>
+    <el-form-item label="uk_phonemes" :label-width="formLabelWidth">
+      <el-input v-model="form.uk_phonemes" auto-complete="off"></el-input>
     </el-form-item>
     <el-form-item label="publish_date" :label-width="formLabelWidth">
 	    <el-col :span="11">
 	      <el-date-picker type="date" placeholder="choice date" v-model="form.publish_date" style="width: 100%;"></el-date-picker>
 	    </el-col>
 	</el-form-item>
-    <el-form-item >
+    <el-form-item label="image" :label-width="formLabelWidth">
     	<el-upload
 		  action="/upload"
-		  :data={type:'sentence'}
+		  :data={type:'word'}
 		  list-type="picture-card"
 		  ref="upload_add"
 		  :multiple=false
@@ -59,6 +63,26 @@
 		<el-dialog v-model="dialogVisible" size="tiny">
 		  <img width="100%" :src="dialogImageUrl" alt="">
 		</el-dialog>
+    </el-form-item>
+    <el-form-item label="us_phonemes" :label-width="formLabelWidth">
+    	<el-upload
+		  action="/upload"
+		  :data={type:'phonemes'}
+		  ref="upload_add_us_phone"
+		  :multiple=false
+		  :on-success="handleUploadSuccess_usphonemes">
+		  <i class="el-icon-plus"></i>
+		</el-upload>
+    </el-form-item>
+    <el-form-item label="uk_phonemes" :label-width="formLabelWidth">
+    	<el-upload
+		  action="/upload"
+		  :data={type:'phonemes'}
+		  ref="upload_add_uk_phone"
+		  :multiple=false
+		  :on-success="handleUploadSuccess_ukphonemes">
+		  <i class="el-icon-plus"></i>
+		</el-upload>
     </el-form-item>
   </el-form>
   <div slot="footer" class="dialog-footer">
@@ -83,16 +107,38 @@
     <el-form-item >
     	<el-upload
 		  action="/upload"
-		  :data={type:'sentence'}
+		  :data={type:'word'}
 		  list-type="picture-card"
 		  :multiple=false
-		  :file-list="fileList"
+		  :file-list="editForm.fileList_image"
 		  :on-success="handleUploadSuccess">
 		  <i class="el-icon-plus"></i>
 		</el-upload>
 		<el-dialog v-model="dialogVisible" size="tiny">
 		  <img width="100%" :src="dialogImageUrl" alt="">
 		</el-dialog>
+    </el-form-item>
+    <el-form-item >
+    	<el-upload
+		  action="/upload"
+		  :data={type:'phonemes'}
+		  ref="upload_add_us_phone"
+		  :multiple=false
+		  :file-list="editForm.fileList_us"
+		  :on-success="handleUploadSuccess_usphonemes">
+		  <i class="el-icon-plus"></i>
+		</el-upload>
+    </el-form-item>
+    <el-form-item >
+    	<el-upload
+		  action="/upload"
+		  :data={type:'phonemes'}
+		  ref="upload_add_uk_phone"
+		  :multiple=false
+		  :file-list="editForm.fileList_uk"
+		  :on-success="handleUploadSuccess_ukphonemes">
+		  <i class="el-icon-plus"></i>
+		</el-upload>
     </el-form-item>
   </el-form>
   <div slot="footer" class="dialog-footer">
@@ -104,9 +150,6 @@
 
 </div>
 <script type="text/javascript">
-const router = new VueRouter({
-		  
-		});
 	var app = new Vue({
 	  el: '#app',
 	  data: {
@@ -115,22 +158,31 @@ const router = new VueRouter({
 	    addFormVisible: false,
 	    editFormVisible: false,
 	    form: {
-          e_content: '',
-          c_content: '',
+          word: '',
           upload_url:'',
-          publish_date:''
+          publish_date:'',
+          us_phonemes:'',
+          uk_phonemes:'',
+          us_phonemes_audio:'',
+          uk_phonemes_audio:''
         },
         editForm: {
           id:0,
-          e_content: '',
-          c_content: '',
+          word: '',
           upload_url:'',
-          publish_date:''
+          publish_date:'',
+          us_phonemes:'',
+          uk_phonemes:'',
+          us_phonemes_audio:'',
+          uk_phonemes_audio:'',
+          fileList_image:[],
+          fileList_us:[],
+          fileList_uk:[]
         },
         formLabelWidth: '120px',
 		dialogImageUrl:false,
 		dialogVisible:false,
-		fileList:[],
+		
 		page:{
 			currentPage:1,
 			pageSize:10,
@@ -138,20 +190,20 @@ const router = new VueRouter({
 		}
 	  },
 	  created:function(){
-	  	console.log(this);
 	  },
-	  router,
 	  methods:{
 	  
 	  	handleEdit:function(index,row){
 	  		this.editFormVisible = true;
 	  		this.editForm.id = row.id;
-	  		this.editForm.e_content = row.e_content;
-	  		this.editForm.c_content = row.c_content;
+	  		this.editForm.word = row.word;
 	  		this.editForm.upload_url = row.image_path;
-	  		console.log(row.publish_date);
 	  		this.editForm.publish_date = row.publish_date;
-	  		this.fileList = [{name:'name',url:row.image_path}];
+	  		this.editForm.us_phonemes_audio = row.us_phonemes_audio;
+	  		this.editForm.uk_phonemes_audio = row.uk_phonemes_audio;
+	  		this.editForm.fileList_image = [{name:'name',url:row.image_path}];
+	  		this.editForm.fileList_us = [{name:'name',url:row.us_phonemes_audio}];
+	  		this.editForm.fileList_uk = [{name:'name',url:row.uk_phonemes_audio}];
 	  	},
 	  	handleDelete:function(index,row){
 	  		this.$confirm('this operate will delete forever,ready to delete?','confirm',{
@@ -207,7 +259,18 @@ const router = new VueRouter({
 	  			this.form.upload_url = res;
 	  		if(this.editFormVisible)
 	  			this.editForm.upload_url = res;
-
+	  	},
+	  	handleUploadSuccess_usphonemes(res, file){
+	  		if(this.addFormVisible)
+	  			this.form.us_phonemes_audio = res;
+	  		if(this.editFormVisible)
+	  			this.editForm.us_phonemes_audio = res;
+	  	},
+	  	handleUploadSuccess_ukphonemes(res, file){
+	  		if(this.addFormVisible)
+	  			this.form.uk_phonemes_audio = res;
+	  		if(this.editFormVisible)
+	  			this.editForm.uk_phonemes_audio = res;
 	  	},
   		handleSizeChange(val) {
   			this.page.pageSize = val;
@@ -222,11 +285,14 @@ const router = new VueRouter({
 	    	});
 	    },
 	    clearForm(){
-	    	this.form.e_content = '';
-	    	this.form.c_content = '';
+	    	this.form.word = '';
 	    	this.form.upload_url = '';
 	    	this.form.publish_date = '';
+	    	this.form.us_phonemes = '';
+	    	this.form.uk_phonemes = '';
 	    	this.$refs.upload_add.clearFiles();
+	    	this.$refs.upload_add_us_phone.clearFiles();
+	    	this.$refs.upload_add_uk_phone.clearFiles();
 	    }
       }
 	});

@@ -11,7 +11,7 @@ router.post('/', upload.single('file'),function(req, res, next) {
 	console.log(req.file);
 	var tmp_path = req.file.path;
 	var filename = req.file.filename;
-	var postfix = req.file.originalname.substr(req.file.originalname.lastIndexOf('.'));
+	var postfix = req.file.originalname.substr(req.file.originalname.lastIndexOf('.')==-1?req.file.originalname.length:req.file.originalname.lastIndexOf('.'));
 	//var md5sum = crypto.createHash('md5');
 	//md5sum.update(filename);
 	//filename = md5sum.digest('hex');
