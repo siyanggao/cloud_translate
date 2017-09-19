@@ -1,7 +1,5 @@
 function gmtToBJ(gmtDateStr){
 	var gmtDate = new Date(gmtDateStr);
-	//gmtDate.setTime(gmtDate.getTime()+8*60*60*1000);
-	console.log(gmtDate);
 	var month,day,hour,minute,second;
 	month = (gmtDate.getMonth()+1);
 	if(month<10) month = "0"+month;

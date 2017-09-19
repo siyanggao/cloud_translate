@@ -30,6 +30,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/webUsers',webUsers);
 app.use('/webSentence',require('./routes/web/sentence'));
+app.use('/webWord',require('./routes/web/word'));
 app.use('/upload',require('./routes/upload'));
 app.use('/', index);
 app.use('/users', users);
