@@ -6,11 +6,6 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 
-
-var webUsers = require('./routes/web/users');
-var index = require('./routes/index');
-var users = require('./routes/users');
-
 var app = express();
 
 // view engine setup
@@ -28,12 +23,25 @@ app.use(session({
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/webUsers',webUsers);
+var reWeb = /^\/web.*/;
+app.use(function(req, res, next){
+  if(reWeb.test(req.url)&&req.url!="/webUsers/login"){
+    if(req.session.user==null||req.session.user.id!=1){
+      res.render('login');
+    }else{
+      next();
+    }
+  }else{
+    next();
+  }
+});
+
+app.use('/webUsers',require('./routes/web/users'));
 app.use('/webSentence',require('./routes/web/sentence'));
 app.use('/webWord',require('./routes/web/word'));
+app.use('/webArticle',require('./routes/web/article'));
+app.use('/webMessage',require('./routes/web/message'));
 app.use('/upload',require('./routes/upload'));
-app.use('/', index);
-app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

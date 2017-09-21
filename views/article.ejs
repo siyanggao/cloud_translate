@@ -4,35 +4,21 @@
 <el-col :span="3"><%- include left %></el-col>
 <el-col :span="21">
 <div class="block" style="margin:5px">
-    <span class="demonstration">publish_date:</span>
-    <el-date-picker
-      v-model="page.search_publish_date"
-      align="right"
-      type="date"
-      placeholder="choice date">
-    </el-date-picker>
+    <span class="demonstration">title:</span>
+    <el-input v-model="page.search_title" placeholder="title" style="width:180px"></el-input>
     <el-button type="primary" @click="search">search</el-button>
-  </div>
+</div>
 <el-button @click="clearForm();formVisible = true;" style="margin:5px" type="primary">add</el-button>
 <el-table :data="tableData" border style="width: 100%">
 	<el-table-column prop="id" label="id" width="60"></el-table-column>
-	<el-table-column prop="word" label="word" width="80"></el-table-column>
-	<el-table-column prop="translate" label="translate" width="120"></el-table-column>
-	<el-table-column prop="image_path" label="image" width="120">
-		<template scope="scope"><img v-bind:src="scope.row.image_path" style="width:120px;height:60px"/></template>
-	</el-table-column>
+	<el-table-column prop="title" label="title" width="200"></el-table-column>
+	<el-table-column prop="origin" label="origin" width="120"></el-table-column>
 	<el-table-column prop="publish_date" label="publish_date" width="110"></el-table-column>
-	<el-table-column prop="us_phonemes" label="us_phonemes" width="120"></el-table-column>
-	<el-table-column prop="uk_phonemes" label="uk_phonemes" width="120"></el-table-column>
-	<el-table-column prop="us_phonemes_audio" label="us_phonemes_audio" width="120">
-		<template scope="scope">
-			<audio :src="scope.row.us_phonemes_audio" controls="controls">Your browser does not support the audio tag.</audio>
-		</template>
-	</el-table-column>
-	<el-table-column prop="uk_phonemes_audio" label="uk_phonemes_audio" width="120">
-		<template scope="scope">
-			<audio :src="scope.row.uk_phonemes_audio" controls="controls">Your browser does not support the audio tag.</audio>
-		</template>
+	<el-table-column prop="content_brief" label="content_brief" width="250"></el-table-column>
+	<el-table-column prop="image_path" label="image" width="150">
+		<template scope="scope"><a v-bind:href="scope.row.image_path">
+			<img v-bind:src="scope.row.image_path" style="width:150px;height:80px"/>
+		</a></template>
 	</el-table-column>
 	<el-table-column prop="gmt_create" label="gmt_create" width="110"></el-table-column>
 	<el-table-column prop="gmt_modified" label="gmt_modified" width="110"></el-table-column>
@@ -57,27 +43,27 @@
 
 <el-dialog title="dialog" :visible.sync="formVisible">
   <el-form :model="form">
-    <el-form-item label="word" :label-width="formLabelWidth">
-      <el-input v-model="form.word" auto-complete="off"></el-input>
+    <el-form-item label="title" :label-width="formLabelWidth">
+      <el-input v-model="form.title"></el-input>
     </el-form-item>
-    <el-form-item label="translate" :label-width="formLabelWidth">
-      <el-input v-model="form.translate" auto-complete="off"></el-input>
-    </el-form-item>
-    <el-form-item label="us_phonemes" :label-width="formLabelWidth">
-      <el-input v-model="form.us_phonemes" auto-complete="off"></el-input>
-    </el-form-item>
-    <el-form-item label="uk_phonemes" :label-width="formLabelWidth">
-      <el-input v-model="form.uk_phonemes" auto-complete="off"></el-input>
+    <el-form-item label="origin" :label-width="formLabelWidth">
+      <el-input v-model="form.origin"></el-input>
     </el-form-item>
     <el-form-item label="publish_date" :label-width="formLabelWidth">
 	    <el-col :span="11">
 	      <el-date-picker type="date" placeholder="choice date" v-model="form.publish_date" style="width: 100%;"></el-date-picker>
 	    </el-col>
 	</el-form-item>
+	<el-form-item label="content" :label-width="formLabelWidth">
+      <el-input v-model="form.content"></el-input>
+    </el-form-item>
+    <el-form-item label="content_brief" :label-width="formLabelWidth">
+      <el-input v-model="form.content_brief"></el-input>
+    </el-form-item>
     <el-form-item label="image" :label-width="formLabelWidth">
     	<el-upload
 		  action="/upload"
-		  :data={type:'word'}
+		  :data={type:'article'}
 		  list-type="picture-card"
 		  ref="upload"
 		  :file-list="form.fileList_image"
@@ -88,28 +74,6 @@
 		<el-dialog v-model="dialogVisible" size="tiny">
 		  <img width="100%" :src="dialogImageUrl" alt="">
 		</el-dialog>
-    </el-form-item>
-    <el-form-item label="us_phonemes" :label-width="formLabelWidth">
-    	<el-upload
-		  action="/upload"
-		  :data={type:'phonemes'}
-		  ref="upload_us_phonemes"
-		  :file-list="form.fileList_us"
-		  :multiple=false
-		  :on-success="handleUploadSuccess_usphonemes">
-		  <i class="el-icon-plus"></i>
-		</el-upload>
-    </el-form-item>
-    <el-form-item label="uk_phonemes" :label-width="formLabelWidth">
-    	<el-upload
-		  action="/upload"
-		  :data={type:'phonemes'}
-		  ref="upload_uk_phonemes"
-		  :file-list="form.fileList_uk"
-		  :multiple=false
-		  :on-success="handleUploadSuccess_ukphonemes">
-		  <i class="el-icon-plus"></i>
-		</el-upload>
     </el-form-item>
   </el-form>
   <div slot="footer" class="dialog-footer">
@@ -127,17 +91,13 @@
 	    formVisible: false,
 	    form: {
 	      id:0,
-          word: '',
-          translate:'',
-          upload_url:'',
+          title: '',
+          origin:'',
           publish_date:'',
-          us_phonemes:'',
-          uk_phonemes:'',
-          us_phonemes_audio:'',
-          uk_phonemes_audio:'',
-          fileList_image:[],
-          fileList_us:[],
-          fileList_uk:[]
+          content:'',
+          content_brief:'',
+          upload_url:'',
+          fileList_image:[]
         },
         formLabelWidth: '120px',
 		dialogImageUrl:'',
@@ -146,7 +106,7 @@
 			currentPage:1,
 			pageSize:10,
 			totalSize:<%=totalSize%>,
-			search_publish_date:''
+			search_title:''
 		}
 	  },
 	  created:function(){
@@ -155,17 +115,13 @@
 	  	handleEdit:function(index,row){
 	  		this.formVisible = true;
 	  		this.form.id = row.id;
-	  		this.form.word = row.word;
-	  		this.form.translate = row.translate;
-	  		this.form.upload_url = row.image_path;
+	  		this.form.title = row.title;
+	  		this.form.origin = row.origin;
 	  		this.form.publish_date = row.publish_date;
-	  		this.form.us_phonemes = row.us_phonemes;
-	  		this.form.uk_phonemes = row.uk_phonemes;
-	  		this.form.us_phonemes_audio = row.us_phonemes_audio;
-	  		this.form.uk_phonemes_audio = row.uk_phonemes_audio;
+	  		this.form.content = row.content;
+	  		this.form.content_brief = row.content_brief;
+	  		this.form.upload_url = row.image_path;
 	  		this.form.fileList_image = [{name:'name',url:row.image_path}];
-	  		this.form.fileList_us = [{name:row.us_phonemes_audio,url:row.us_phonemes_audio}];
-	  		this.form.fileList_uk = [{name:row.uk_phonemes_audio,url:row.uk_phonemes_audio}];
 	  	},
 	  	handleOk:function(){
 	  		if(this.form.id==0) this.add();
@@ -222,12 +178,6 @@
 	  	handleUploadSuccess(res, file){
   			this.form.upload_url = res;
 	  	},
-	  	handleUploadSuccess_usphonemes(res, file){
-	  		this.form.us_phonemes_audio = res;
-	  	},
-	  	handleUploadSuccess_ukphonemes(res, file){
-	  		this.form.uk_phonemes_audio = res;
-	  	},
   		handleSizeChange(val) {
   			this.page.pageSize = val;
   			this.$http.post('',this.page).then(response=>{
@@ -249,17 +199,13 @@
 	    },
 	    clearForm(){
 	    	this.form.id = 0;
-	    	this.form.word = '';
-	    	this.form.translate = '';
-	    	this.form.upload_url = '';
+	    	this.form.title = '';
+	    	this.form.origin = '';
 	    	this.form.publish_date = '';
-	    	this.form.us_phonemes = '';
-	    	this.form.uk_phonemes = '';
-	    	this.form.us_phonemes_audio = '';
-	    	this.form.uk_phonemes_audio = '';
+	    	this.form.content = '';
+	    	this.form.content_brief = '';
+	    	this.form.upload_url = '';
 	    	if(this.$refs.upload!=null) this.$refs.upload.clearFiles();
-	    	if(this.$refs.upload_us_phonemes!=null) this.$refs.upload_us_phonemes.clearFiles();
-	    	if(this.$refs.upload_uk_phonemes!=null) this.$refs.upload_uk_phonemes.clearFiles();
 	    }
       }
 	});

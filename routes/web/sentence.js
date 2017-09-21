@@ -6,8 +6,10 @@ var utils = require('../../config/utils');
 
 router.get('/sentence',function(req,res){
 	db.query(sqlMapper.queryAll,[0,10],function(err,result){
+		if(err) console.log(err);
 		db.query(sqlMapper.queryCount,null,function(errCount,resultCount){
-			res.render('sentence',{tableData:utils.jsonStringify(result),totalSize:resultCount[0].count_value,MenuActive:'1-1'});
+			if(errCount) console.log(errCount);
+			else res.render('sentence',{tableData:utils.jsonStringify(result),totalSize:resultCount[0].count_value,MenuActive:'1-1'});
 		});
 	});
 });
@@ -16,7 +18,6 @@ router.post('/sentence',function(req,res){
 	var currentPage = req.body.currentPage;
 	var pageSize = req.body.pageSize;
 	var start = currentPage==0?0:(currentPage-1)*pageSize;
-	console.log(currentPage+","+pageSize);
 	db.query(sqlMapper.queryAll,[start,pageSize],function(err,result){
 		
 		console.log(result);

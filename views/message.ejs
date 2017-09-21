@@ -1,0 +1,70 @@
+<%- include header %>
+
+<el-row :gutter="5">
+<el-col :span="3"><%- include left %></el-col>
+<el-col :span="21">
+<div class="block" style="margin:5px">
+    <span class="demonstration">content:</span>
+    <el-input v-model="page.search_content" placeholder="content" style="width:180px"></el-input>
+    <el-button type="primary" @click="search">search</el-button>
+</div>
+<el-table :data="tableData" border style="width: 100%">
+	<el-table-column prop="id" label="id" width="60"></el-table-column>
+	<el-table-column prop="user_id" label="user_id" width="120"></el-table-column>
+	<el-table-column prop="content" label="content" width="120"></el-table-column>
+	<el-table-column prop="up_count" label="up_count" width="110"></el-table-column>
+	<el-table-column prop="gmt_create" label="gmt_create" width="110"></el-table-column>
+	<el-table-column prop="gmt_modified" label="gmt_modified" width="110"></el-table-column>
+</el-table>
+<el-pagination style="float:right"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="page.currentPage"
+      :page-sizes="[10, 15, 50, 100]"
+      :page-size="page.pageSize"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="page.totalSize">
+    </el-pagination>
+</el-col>
+</el-row>
+
+</div>
+<script type="text/javascript">
+	var app = new Vue({
+	  el: '#app',
+	  data: {
+	    tableData:<%- tableData%>,
+        formLabelWidth: '120px',
+		page:{
+			currentPage:1,
+			pageSize:10,
+			totalSize:<%=totalSize%>,
+			search_content:''
+		}
+	  },
+	  created:function(){
+	  },
+	  methods:{
+  		handleSizeChange(val) {
+  			this.page.pageSize = val;
+  			this.$http.post('',this.page).then(response=>{
+    			this.tableData = response.body;
+	    	});
+	    },
+	    handleCurrentChange(val) {
+	    	this.page.currentPage = val;
+	    	this.$http.post('',this.page).then(response=>{
+    			this.tableData = response.body;
+	    	});
+	    },
+	    search(){
+	    	this.page.currentPage = 1;
+	    	this.page.pageSize = 10;
+	    	this.$http.post('',this.page).then(response=>{
+    			this.tableData = response.body;
+	    	});
+	    }
+      }
+	});
+</script>
+<%- include footer %>
