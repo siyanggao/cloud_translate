@@ -231,20 +231,22 @@
   		handleSizeChange(val) {
   			this.page.pageSize = val;
   			this.$http.post('',this.page).then(response=>{
-    			this.tableData = response.body;
+    			this.tableData = response.body.data;
 	    	});
 	    },
 	    handleCurrentChange(val) {
 	    	this.page.currentPage = val;
 	    	this.$http.post('',this.page).then(response=>{
-    			this.tableData = response.body;
+    			this.tableData = response.body.data;
 	    	});
 	    },
 	    search(){
 	    	this.page.currentPage = 1;
 	    	this.page.pageSize = 10;
+	    	this.page.totalSize = 0;
 	    	this.$http.post('',this.page).then(response=>{
-    			this.tableData = response.body;
+    			this.tableData = response.body.data;
+    			this.page.totalSize = response.body.totalSize;
 	    	});
 	    },
 	    clearForm(){

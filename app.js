@@ -23,18 +23,23 @@ app.use(session({
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-var reWeb = /^\/web.*/;
-app.use(function(req, res, next){
+var debug = true;
+if(!debug){
+  var reWeb = /^\/web.*/;
+  app.use(function(req, res, next){
   if(reWeb.test(req.url)&&req.url!="/webUsers/login"){
     if(req.session.user==null||req.session.user.id!=1){
       res.render('login');
     }else{
       next();
     }
-  }else{
-    next();
-  }
-});
+    }else{
+      next();
+    }
+  });
+}
+
+app.use('/user',require('./routes/user'));
 
 app.use('/webUsers',require('./routes/web/users'));
 app.use('/webSentence',require('./routes/web/sentence'));

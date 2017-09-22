@@ -1,3 +1,5 @@
+var crypto = require('crypto');
+
 function gmtToBJ(gmtDateStr){
 	var gmtDate = new Date(gmtDateStr);
 	var month,day,hour,minute,second;
@@ -20,6 +22,15 @@ function jsonStringify(jsonObj){
 	return JSON.stringify(jsonObj);
 }
 
+function md5(str){
+	var md5sum = crypto.createHash(‘md5’);
+	md5sum.update(str);
+	str = md5sum.digest(‘hex’);
+	return str;
+}
+
 exports.gmtToBJ = gmtToBJ;
 
 exports.jsonStringify = jsonStringify;
+
+exports.md5 = md5;
