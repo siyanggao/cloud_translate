@@ -13,7 +13,7 @@ var pool = mysql.createPool({
 function query(sql,params,callback){
 	pool.getConnection(function(err,connection){
 		connection.query(sql,params,function(err,rows){
-			callback(err,rows);
+			if(callback!=null) callback(err,rows);
 			connection.release();
 		});
 	});

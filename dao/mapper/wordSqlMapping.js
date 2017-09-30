@@ -4,7 +4,8 @@ var word = {
 	delete: 'delete from word where id=?',
 	queryById: 'select * from word where id=?',
 	queryAll: 'select * from word where order by id desc limit ?,?',
-	queryCount:'select count(id) as count_value from word where'
+	queryCount:'select count(id) as count_value from word where',
+	queryTopOne:'select * from word where publish_date<=? order by publish_date desc limit 0,1'
 };
 
 module.exports = word;

@@ -40,7 +40,8 @@ if(!debug){
 }
 
 app.use('/user',require('./routes/user'));
-
+app.use('/home',require('./routes/home'));
+app.use('/message',require('./routes/message'));
 app.use('/webUsers',require('./routes/web/users'));
 app.use('/webSentence',require('./routes/web/sentence'));
 app.use('/webWord',require('./routes/web/word'));

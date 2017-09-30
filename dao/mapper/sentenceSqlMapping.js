@@ -4,7 +4,8 @@ var sentence = {
 	delete: 'delete from sentence where id=?',
 	queryById: 'select * from sentence where id=?',
 	queryAll: 'select * from sentence order by id desc limit ?,?',
-	queryCount:'select count(id) as count_value from sentence'
+	queryCount:'select count(id) as count_value from sentence',
+	queryTopFive:'select * from sentence where publish_date<=? order by publish_date desc limit 0,5'
 };
 
 module.exports = sentence;
